@@ -17,7 +17,7 @@
 
 - Backend: Python 3.10+, FastAPI, Pydantic, HTTPX
 - Frontend: React, Vite, JavaScript
-- AI 연결: OpenAI 호환 Chat Completions API 어댑터. 공급자와 모델은 팀 결정에 따라 환경 변수로 설정합니다.
+- AI 연결: OpenAI Chat Completions API, `gpt-6-luna`, 추론 강도 `high`.
 - 저장소: 없음
 
 ## 실행 준비
@@ -30,15 +30,16 @@
 cp .env.example .env
 ```
 
-`.env`에서 실제 AI 연결 정보를 설정합니다. `AI_BASE_URL`에는 `/chat/completions`를 제외한 API 기본 주소를 입력합니다. 예를 들어 호환 API가 `/v1/chat/completions`를 제공한다면 기본 주소는 `/v1`까지입니다.
+`.env`에서 OpenAI API 프로젝트 키를 설정합니다. ChatGPT 앱 구독과 API 사용료는 별도이며, 유료 API 사용 전 API 플랫폼의 결제 설정을 확인해야 합니다. API 키는 [OpenAI API 플랫폼](https://platform.openai.com/)에서 발급하고, 키 생성·사용 정보는 [API 키 안내](https://developers.openai.com/api/docs/guides/api-keys)를 참고하세요. 이 서비스는 OpenAI의 `/v1/chat/completions`를 호출하므로 `AI_BASE_URL`에는 `/chat/completions`를 넣지 않습니다.
 
 ```env
-AI_BASE_URL=https://your-compatible-api.example/v1
-AI_MODEL=your_model_name
+AI_BASE_URL=https://api.openai.com/v1
+AI_MODEL=gpt-6-luna
+AI_REASONING_EFFORT=high
 AI_API_KEY=your_secret_key
 ```
 
-서버는 AI 설정 없이도 실행할 수 있지만, 설정이 없으면 분석 요청은 `503` 오류로 종료됩니다. 실제 키를 코드·프런트엔드 환경 변수에 넣거나 저장소에 커밋하지 마세요.
+`AI_API_KEY`에는 발급받은 프로젝트 API 키를 입력합니다. 서버는 키 설정 없이 실행할 수 있지만, 분석 요청은 `503` 오류로 종료됩니다. 실제 키를 코드·프런트엔드 환경 변수에 넣거나 저장소에 커밋하지 마세요. API 키는 이 채팅에 붙여 넣지 마세요.
 
 ### 2. Backend 실행
 

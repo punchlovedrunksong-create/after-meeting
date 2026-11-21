@@ -6,7 +6,7 @@
 - 목적: STT로 이미 추출된 TXT 회의 내용을 요약하고, 요약에서 근거가 확인되는 후속 업무를 표시한다.
 - 기술: Backend FastAPI / Frontend React + Vite
 - 기준 문서: `docs/requirements.md`, `docs/function-breakdown.md`, `docs/mvp-plan.md`
-- AI 제공자·모델·키: 팀에서 결정하기 전까지 `.env.example` placeholder로 유지한다. 실제 비밀값을 저장소에 추가하지 않는다.
+- AI 제공자·모델: OpenAI API의 `gpt-6-luna`, Chat Completions `reasoning_effort=high`를 기본값으로 사용한다. API 키는 각 개발자가 로컬 `.env`에 설정하고 저장소에 추가하지 않는다.
 - `vibe-frame-kit` 원본 파일은 이 저장소에 복사하지 않는다.
 
 ## 작업 시작
@@ -37,4 +37,4 @@
 ## 완료 보고
 
 - 변경한 기능과 파일, 확인한 사항, 미실행 검증, 남은 결정 사항을 구분해 보고한다.
-- AI 제공자 설정 전에는 외부 AI 분석이 실행되지 않는 점을 표시한다.
+- 로컬 API 키가 설정되지 않으면 외부 AI 분석을 실행할 수 없음을 표시한다.

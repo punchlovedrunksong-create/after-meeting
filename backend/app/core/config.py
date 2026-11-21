@@ -26,6 +26,7 @@ class Settings:
     )
     ai_base_url: str = os.getenv("AI_BASE_URL", "").strip()
     ai_model: str = os.getenv("AI_MODEL", "")
+    ai_reasoning_effort: str = os.getenv("AI_REASONING_EFFORT", "high").strip()
     ai_api_key: str = os.getenv("AI_API_KEY", "")
     ai_timeout_seconds: float = float(os.getenv("AI_TIMEOUT_SECONDS", "45"))
 

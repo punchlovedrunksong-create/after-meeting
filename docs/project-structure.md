@@ -6,9 +6,9 @@
 
 - 기준 문서: `requirements.md`, `function-breakdown.md`, `mvp-plan.md`
 - 대상: 분석 이력과 데이터베이스가 없는 단일 TXT 회의 분석 MVP
-- 기술 구성: FastAPI Backend, React + Vite Frontend, OpenAI 호환 API 어댑터
+- 기술 구성: FastAPI Backend, React + Vite Frontend, OpenAI Chat Completions API (`gpt-6-luna`, `reasoning_effort=high`)
 - 키트 적용: 프로젝트 구조 설계 기준만 반영했다. `vibe-frame-kit`의 원본 파일은 앱에 복사하지 않는다.
-- AI 제공자·모델·버전: 미정. 팀에서 결정한 뒤 `.env`의 서버 전용 설정으로 연결한다.
+- API 키: 미정. 각 개발자가 발급받아 Backend 서버의 로컬 `.env`에만 설정한다.
 
 ## 2. 사용자 흐름 및 데이터 흐름
 
@@ -33,7 +33,7 @@
 | Backend API | multipart 요청 수신, 서비스 호출, 성공·오류 응답 경계 | `backend/app/api/routes/`, `api/schemas/`, `main.py` |
 | 문서 처리 | 서버에서 파일 형식·크기·디코딩·빈 내용 검증 | `backend/app/services/document_service.py` |
 | 분석 흐름 | 요약 → 형식 검증 → 투두 → 형식 검증, 제한 재시도 | `backend/app/agents/workflow.py` |
-| AI 연결 | 환경 설정 확인, 호환 API 호출, JSON 파싱, 민감 내용 없이 오류 분류 | `backend/app/services/ai_service.py` |
+| AI 연결 | 환경 설정 확인, OpenAI Chat Completions 호출, high 추론 강도, JSON 파싱, 민감 내용 없이 오류 분류 | `backend/app/services/ai_service.py` |
 
 ## 4. 계층 책임과 주요 입출력
 
@@ -122,7 +122,7 @@ after-meeting/
 
 | 항목 | 결정 주체 / 확인 방법 | 영향 |
 | --- | --- | --- |
-| AI 제공자·모델·버전·Chat Completions 호환성 | 팀/강사, 실제 연결 전 공급자 문서와 샘플 응답 확인 | 모델 설정, 실패 처리, 비용 및 출력 품질 |
+| OpenAI API 키 발급·결제 | 각 개발자/프로젝트 소유자, API 플랫폼에서 발급하고 로컬 설정 | 실제 요청 실행과 API 비용 |
 | 원문 외부 전송·보관 조건 | 팀/강사, 공급자 데이터 정책 및 사용자 고지 확인 | 개인정보 안내와 실제 서비스 사용 가능성 |
 | 투두 우선순위 허용 값 | 팀, 고정 회의 TXT로 표현을 합의 | 응답 정규화와 UI 표시 |
 | R-03 필드 필수 여부와 미확인 값 생략 규칙 | 팀/강사, 요구사항과 최신 기능 분해표를 대조 | Model의 nullable/required 계약 |
@@ -130,4 +130,4 @@ after-meeting/
 
 - 설계 판정: **통과** — 사용자 경로, 최소 API, 모듈 책임, MVP 포함/제외 범위와 추적 문서를 정리했다.
 - 구현 판정: **확인 필요** — 웹 흐름과 Backend 연결 코드는 있으나, 이 변경에서 런타임·브라우저·외부 AI 시연 검증을 실행하지 않았다.
-- 남은 검증: macOS에서 README 절차로 실행, 파일 오류 시나리오와 성공 화면 확인, AI 제공자 설정 후 고정 샘플 품질 확인.
+- 남은 검증: macOS에서 README 절차로 실행, 파일 오류 시나리오와 성공 화면 확인, API 키 설정 후 고정 샘플 품질 확인.

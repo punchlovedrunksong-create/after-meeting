@@ -1,6 +1,7 @@
 """Sequential summary → validation → todo workflow."""
 
 import json
+import logging
 from typing import Any, Callable, TypeVar
 
 from pydantic import ValidationError
@@ -11,6 +12,49 @@ from app.services.ai_service import AIService
 
 T = TypeVar("T")
 MAX_ATTEMPTS = 2
+logger = logging.getLogger(__name__)
+
+SUMMARY_RESPONSE_SCHEMA = {
+    "name": "meeting_summary",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "meeting_agenda": {"type": "string"},
+            "issues": {"type": "string"},
+            "solutions": {"type": "string"},
+            "conclusion": {"type": "string"},
+        },
+        "required": ["meeting_agenda", "issues", "solutions", "conclusion"],
+        "additionalProperties": False,
+    },
+}
+
+TODO_RESPONSE_SCHEMA = {
+    "name": "meeting_todos",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "todos": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "task": {"type": "string"},
+                        "assignee": {"type": ["string", "null"]},
+                        "due_date": {"type": ["string", "null"]},
+                        "priority": {"type": ["string", "null"]},
+                    },
+                    "required": ["task", "assignee", "due_date", "priority"],
+                    "additionalProperties": False,
+                },
+            }
+        },
+        "required": ["todos"],
+        "additionalProperties": False,
+    },
+}
 
 
 class AnalysisWorkflow:
@@ -34,6 +78,7 @@ class AnalysisWorkflow:
             ),
             validator=self._validate_summary,
             stage="요약",
+            response_schema=SUMMARY_RESPONSE_SCHEMA,
         )
 
         todo_prompt = (
@@ -51,6 +96,7 @@ class AnalysisWorkflow:
             user_prompt=f"요약 JSON:\n{summary.model_dump_json(ensure_ascii=False)}",
             validator=self._validate_todos,
             stage="투두리스트",
+            response_schema=TODO_RESPONSE_SCHEMA,
         )
         return AnalysisResult(summary=summary, todos=todos)
 
@@ -60,17 +106,28 @@ class AnalysisWorkflow:
         user_prompt: str,
         validator: Callable[[dict[str, Any]], T],
         stage: str,
+        response_schema: dict[str, Any],
     ) -> T:
         last_error: AppError | None = None
         for attempt in range(MAX_ATTEMPTS):
             try:
-                completion = await self.ai_service.generate_json(system_prompt, user_prompt)
+                completion = await self.ai_service.generate_json(
+                    system_prompt,
+                    user_prompt,
+                    response_schema=response_schema,
+                )
                 return validator(completion.data)
             except AppError as exc:
                 last_error = exc
                 if not exc.retryable or attempt + 1 >= MAX_ATTEMPTS:
                     raise
             except (ValidationError, ValueError, TypeError, KeyError) as exc:
+                logger.warning(
+                    "AI output validation failed stage=%s attempt=%s exception=%s",
+                    stage,
+                    attempt + 1,
+                    type(exc).__name__,
+                )
                 last_error = AppError(
                     "AI_OUTPUT_VALIDATION_FAILED",
                     f"AI {stage} 결과가 필요한 형식과 다릅니다.",

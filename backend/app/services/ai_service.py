@@ -42,7 +42,12 @@ def _safe_endpoint_label(url: str) -> str:
 
 
 class AIService:
-    async def generate_json(self, system_prompt: str, user_prompt: str) -> AICompletionResult:
+    async def generate_json(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        response_schema: dict[str, Any] | None = None,
+    ) -> AICompletionResult:
         missing_settings = [
             name
             for name, value in (
@@ -92,9 +97,17 @@ class AIService:
             "Authorization": f"Bearer {settings.ai_api_key}",
             "Content-Type": "application/json",
         }
+        response_format: dict[str, Any] = {"type": "json_object"}
+        if response_schema:
+            response_format = {
+                "type": "json_schema",
+                "json_schema": response_schema,
+            }
+
         body = {
             "model": settings.ai_model,
-            "temperature": 0,
+            "reasoning_effort": settings.ai_reasoning_effort,
+            "response_format": response_format,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
